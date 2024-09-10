@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Replicate Model Interface</title>
+</head>
+<body>
+    <h1>Run Model on Replicate</h1>
+    <form id="model-form">
+        <input type="text" id="prompt" placeholder="Enter your prompt" required>
+        <button type="submit">Generate</button>
+    </form>
+    <div id="output"></div>
+
+    <script>
+        document.getElementById('model-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const prompt = document.getElementById('prompt').value;
+
+            const response = await fetch('/run-model', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ "prompt": prompt })
+            });
+
+            const result = await response.json();
+            const outputDiv = document.getElementById('output');
+
+            if (result.output) {
+                const imageUrl = result.output[0]; // Assuming the output is a list of URLs
+                outputDiv.innerHTML = `
+                    <p>Generated Image:</p>
+                    <img src="${imageUrl}" alt="Generated Image" style="max-width: 100%; height: auto;">
+                `;
+            } else {
+                outputDiv.innerText = 'Error: ' + result.error;
+            }
+        });
+    </script>
+</body>
+</html>
