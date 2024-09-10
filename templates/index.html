@@ -3,40 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Replicate Model Interface</title>
+    <title>Generate Your Image</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://unpkg.com/vanta@latest/dist/vanta.net.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #010201;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        #content {
+            text-align: center;
+        }
+        input[type="text"] {
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            width: 300px;
+            margin-right: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #008cff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #005bb5;
+        }
+        #output {
+            display: none;
+            margin-top: 20px;
+        }
+        .image-container {
+            position: relative;
+            display: inline-block;
+            margin: 0 auto;
+            padding: 10px;
+            border: 5px solid #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            max-height: 80vh;
+            display: block;
+            margin: 0 auto;
+        }
+        .download-prompt {
+            margin-top: 10px;
+        }
+        .download-btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            background-color: #008cff;
+            color: white;
+            cursor: pointer;
+        }
+        .download-btn:hover {
+            background-color: #005bb5;
+        }
+    </style>
 </head>
 <body>
-    <h1>Run Model on Replicate</h1>
-    <form id="model-form">
-        <input type="text" id="prompt" placeholder="Enter your prompt" required>
-        <button type="submit">Generate</button>
-    </form>
-    <div id="output"></div>
+    <div id="content">
+        <h1>Generate Your Image </h1>
+        <form id="model-form">
+            <input type="text" id="prompt" placeholder="Enter your prompt" required>
+            <button type="submit">Generate</button>
+        </form>
+        <div id="output">
+            <div class="image-container">
+                <img id="generated-image" src="" alt="Generated Image">
+            </div>
+            <div class="download-prompt">
+                <p>Do you want to download this image?</p>
+                <button class="download-btn" id="download-button">Download</button>
+            </div>
+        </div>
+    </div>
 
     <script>
+        // Vanta.js background animation
+        VANTA.NET({
+            el: "body",
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00
+        });
+
         document.getElementById('model-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const prompt = document.getElementById('prompt').value;
 
             const response = await fetch('/run-model', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ "prompt": prompt })
             });
 
             const result = await response.json();
             const outputDiv = document.getElementById('output');
+            const imageElement = document.getElementById('generated-image');
+            const downloadButton = document.getElementById('download-button');
 
             if (result.output) {
-                const imageUrl = result.output[0]; // Assuming the output is a list of URLs
-                outputDiv.innerHTML = `
-                    <p>Generated Image:</p>
-                    <img src="${imageUrl}" alt="Generated Image" style="max-width: 100%; height: auto;">
-                `;
+                const imageUrl = result.output[0]; 
+                imageElement.src = imageUrl;
+                outputDiv.style.display = 'block';
+                downloadButton.onclick = () => {
+                    const link = document.createElement('a');
+                    link.href = imageUrl;
+                    link.download = 'generated_image.png';
+                    link.click();
+                };
             } else {
                 outputDiv.innerText = 'Error: ' + result.error;
+                outputDiv.style.display = 'block';
             }
         });
     </script>
